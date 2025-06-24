@@ -1,8 +1,13 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include  "secrets.h"
-const int trig = D3;
-const int echo = D4;
+const int trig = D2;
+const int echo = D1;
+
+const int BLUE  = D5;
+const int GREEN = D6;
+const int RED   = D7;
+
 int   distance;
 long  duration;
 
@@ -18,6 +23,10 @@ void setup() {
 
   pinMode(trig,OUTPUT);
   pinMode(echo,INPUT);
+
+  pinMode(RED,OUTPUT);
+  pinMode(GREEN,OUTPUT);
+  pinMode(BLUE,OUTPUT);
   Serial.begin(115200);
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
@@ -26,7 +35,7 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-
+  blinkTwice("GREEN");
   Serial.println("\nWiFi connected. IP address: ");
   Serial.println(WiFi.localIP());
 }
@@ -61,6 +70,27 @@ int smoothDistance() {
   return (readings > 0) ? total / readings : -1;
 }
 
+void blinkTwice(String color) {
+  int pin;
+
+  if (color == "RED") {
+    pin = RED;
+  } else if (color == "GREEN") {
+    pin = GREEN;
+  } else if (color == "BLUE") {
+    pin = BLUE;
+  } else {
+    Serial.println("Invalid color!");
+    return;
+  }
+  digitalWrite(pin, HIGH);
+  delay(100);
+  digitalWrite(pin, LOW);
+  delay(100);
+  digitalWrite(pin, HIGH);
+  delay(100);
+  digitalWrite(pin, LOW);
+}
 
 void sendAction(String action){
   if (WiFi.status() == WL_CONNECTED) {
@@ -73,6 +103,10 @@ void sendAction(String action){
 
     int response = http.POST(data);
     Serial.println("response: " + String(response));
+    //Serial.print("Error: ");
+    //Serial.println(http.errorToString(response));
+    if(response == 200) blinkTwice("GREEN");
+    else{blinkTwice("RED");}
     http.end();
   }
 }
@@ -89,6 +123,7 @@ void loop() {
 
   if(distance<5 && (currentTime-lastGestureTime>2000) && wasFar){
     lastGestureTime = currentTime;
+    blinkTwice("BLUE");
     sendAction(isMute? "unmute":"mute");
     isMute=!isMute;
     wasFar = false;
@@ -96,6 +131,7 @@ void loop() {
   // pause and resume
   if ((distance > 10 && distance <30) && (currentTime - lastGestureTime > 2000)) {  
     Serial.println("in pause/resume section");
+    blinkTwice("BLUE");
     sendAction(isPaused ? "resume" : "pause");
     isPaused = !isPaused;
     lastGestureTime = currentTime;
