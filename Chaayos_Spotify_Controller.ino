@@ -119,9 +119,9 @@ void loop() {
 
   distance = smoothDistance();if(distance < 0) return; 
   // Serial.println(distance);
-  if(distance>7){wasFar = true;}
+  if(distance>9){wasFar = true;}
 
-  if(distance<5 && (currentTime-lastGestureTime>2000) && wasFar){
+  if(distance<=9 && (currentTime-lastGestureTime>2000) && wasFar){
     lastGestureTime = currentTime;
     blink("BLUE",1);
     sendAction(isMute? "unmute":"mute");
@@ -129,7 +129,7 @@ void loop() {
     wasFar = false;
   }
   // pause and resume
-  if ((distance > 10 && distance <30) && (currentTime - lastGestureTime > 2000)) {  
+  if ((distance > 15 && distance <30) && (currentTime - lastGestureTime > 2000)) {  
     Serial.println("in pause/resume section");
     blink("BLUE",2);
     sendAction(isPaused ? "resume" : "pause");
