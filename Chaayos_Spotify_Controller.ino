@@ -4,9 +4,9 @@
 const int trig = D2;
 const int echo = D1;
 
-const int BLUE  = D5;
+const int BLUE = D5;
 const int GREEN = D6;
-const int RED   = D7;
+const int RED = D7;
 
 int   distance;
 long  duration;
@@ -35,7 +35,7 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  blinkTwice("GREEN");
+  blink("GREEN",3);
   Serial.println("\nWiFi connected. IP address: ");
   Serial.println(WiFi.localIP());
 }
@@ -70,7 +70,7 @@ int smoothDistance() {
   return (readings > 0) ? total / readings : -1;
 }
 
-void blinkTwice(String color) {
+void blink(String color,int count) {
   int pin;
 
   if (color == "RED") {
@@ -83,13 +83,13 @@ void blinkTwice(String color) {
     Serial.println("Invalid color!");
     return;
   }
-  digitalWrite(pin, HIGH);
-  delay(100);
-  digitalWrite(pin, LOW);
-  delay(100);
-  digitalWrite(pin, HIGH);
-  delay(100);
-  digitalWrite(pin, LOW);
+  for(int i=0;i<count;i++){
+    digitalWrite(pin, HIGH);
+    delay(100);
+    digitalWrite(pin, LOW);
+    delay(100);
+  }
+
 }
 
 void sendAction(String action){
@@ -103,10 +103,10 @@ void sendAction(String action){
 
     int response = http.POST(data);
     Serial.println("response: " + String(response));
-    //Serial.print("Error: ");
-    //Serial.println(http.errorToString(response));
-    if(response == 200) blinkTwice("GREEN");
-    else{blinkTwice("RED");}
+    Serial.print("Error: ");
+    Serial.println(http.errorToString(response));
+    if(response == 200) blink("GREEN",2);
+    else{blink("RED",2);}
     http.end();
   }
 }
@@ -123,7 +123,7 @@ void loop() {
 
   if(distance<5 && (currentTime-lastGestureTime>2000) && wasFar){
     lastGestureTime = currentTime;
-    blinkTwice("BLUE");
+    blink("BLUE",1);
     sendAction(isMute? "unmute":"mute");
     isMute=!isMute;
     wasFar = false;
@@ -131,7 +131,7 @@ void loop() {
   // pause and resume
   if ((distance > 10 && distance <30) && (currentTime - lastGestureTime > 2000)) {  
     Serial.println("in pause/resume section");
-    blinkTwice("BLUE");
+    blink("BLUE",2);
     sendAction(isPaused ? "resume" : "pause");
     isPaused = !isPaused;
     lastGestureTime = currentTime;
